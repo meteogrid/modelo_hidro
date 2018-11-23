@@ -23,8 +23,26 @@
 </div>
 </form>
 <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
-{% endblock %}
 
+<div class="modal fade" id="result_modal" tabindex="-1" role="dialog" aria-labelledby="result_label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="result_label"></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body" id="result_body">
+              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}
 {% block scriptBlock %}
 <script>
     $(document).ready(cargar_canvas);
@@ -55,14 +73,29 @@
     }
 
     $(function () {
-        $("#calculo_fecha").datepicker();
+        $("#calculo_fecha").datepicker({
+            dateFormat:"yy-mm-dd"
+        });
     });
 
     $("#buscar_button").click(function (event) {
         event.preventDefault();
         var unidad = document.getElementById("unidades_select").value;
         var fecha = document.getElementById("calculo_fecha").value;
-        console.log(unidad, " ", fecha);
+        var error = "";
+        
+        if(unidad == '0'){
+            error += "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Unidad</b> para la consulta</div>";
+        }
+        if(fecha == ''){
+            error += "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Fecha</b> para la consulta</div>";
+        }
+
+        $("#result_body").html(error);
+        $("#result_label").html("ERROR");
+        $("#result_modal").modal('toggle');
+
+        console.log(unidad, " ", fecha, " ", error);
     })       
 
     $("#unidades_select").change(function () {
