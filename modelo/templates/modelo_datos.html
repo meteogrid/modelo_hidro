@@ -1,0 +1,144 @@
+{% extends 'base_generic.html' %}
+
+{% block content_block %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Modelo de Datos</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="input-group input-group-sm mb-2">
+            <select class="form-control form-control-sm" id="unidades_select" aria-describedby="addon_unidades"></select>
+            <div class="input-group-append">
+                <span class="input-group-text form-control-sm" id="addon_unidades">Unidades Hidrologicas</span>
+            </div>
+
+        </div>
+        <div class='input-group input-group-sm mb-2 ml-1'>
+            <input type='text' class="form-control form-control-md" id="calculo_fecha" aria-describedby="addon_fecha" />
+            <div class="input-group-append">
+                <span class="input-group-text form-control-sm" id="addon_fecha">Fecha</span>
+            </div>
+            <button type="button" id="buscar_button" class="btn btn-secondary btn-sm ml-1">Buscar</button>
+        </div>
+
+    </div>
+</div>
+</form>
+<canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+{% endblock %}
+
+{% block scriptBlock %}
+<script>
+    $(document).ready(cargar_canvas);
+    $(document).ready(cargar_unidades);
+
+    function cargar_canvas() {
+        var ctx = document.getElementById("myChart").getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: [],
+            options: []
+        });
+    }
+
+    function cargar_unidades() {
+        $.ajax({
+            method: "GET",
+            url: '{% url "get_unidades" %}',
+            success: function (data) {
+                var unidades = data['unidades'];
+                var options = '<option value="0">----Select----</option>';
+                for (var i = 0; i < unidades.length; i++) {
+                    options += '<option value="' + unidades[i] + '">' + unidades[i] + '</option>';
+                }
+                $("#unidades_select").html(options);
+            }
+        })
+    }
+
+    $(function () {
+        $("#calculo_fecha").datepicker();
+    });
+
+    $("#buscar_button").click(function (event) {
+        event.preventDefault();
+        var unidad = document.getElementById("unidades_select").value;
+        var fecha = document.getElementById("calculo_fecha").value;
+        console.log(unidad, " ", fecha);
+    })       
+
+    $("#unidades_select").change(function () {
+        var unidad = $(this).val();
+
+        $.ajax({
+            method: "GET",
+            url: '{% url "get_calculo_data" %}',
+            data: {
+                'unidad': unidad
+            },
+            success: function (data) {
+                var ctx = document.getElementById("myChart").getContext('2d');
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                                label: 'Precipitacion',
+                                data: data.caudal_items,
+                                backgroundColor: [
+                                    'rgba(0, 255, 0, 0.2)',
+                                    'rgba(0, 254, 235, 0.2)',
+                                    'rgba(0, 255, 0, 0.2)',
+                                    'rgba(0, 175, 192, 0.2)',
+                                    'rgba(0, 153, 0, 0.2)',
+                                    'rgba(0, 255, 64, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(0,255,132,1)',
+                                    'rgba(0, 154, 235, 1)',
+                                    'rgba(0, 255, 86, 1)',
+                                    'rgba(0, 175, 192, 1)',
+                                    'rgba(0, 153, 255, 1)',
+                                    'rgba(0, 255, 64, 1)'
+                                ],
+                                borderWidth: 1,
+                                borderSkipped: 'botton'
+                            },
+                            {
+                                type: 'line',
+                                label: 'Caudal',
+                                data: data.p_ajustada_items,
+                                backgroundColor: [
+                                    'rgba(255, 0, 132, 0.2)',
+                                    'rgba(54, 0, 235, 0.2)',
+                                    'rgba(255, 0, 86, 0.2)',
+                                    'rgba(75, 0, 192, 0.2)',
+                                    'rgba(153, 0, 255, 0.2)',
+                                    'rgba(255, 0, 64, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255,99,132,1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+        })
+    })
+</script>
+{% endblock %}

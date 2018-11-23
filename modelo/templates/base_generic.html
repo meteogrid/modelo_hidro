@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Modelo Hidrologico</title>
+
+  <!--Static Script-->
+  {% load static %}
+  <script type="text/javascript" src="{% static "js/papaparse.min.js" %}"></script>
+
+  <!-- Bootstrap core CSS -->
+  {% include 'base/bootstrap_defaults.html' %}
+  {% include 'base/css.html' %}
+  {% include 'base/js.html' %}
+</head>
+
+<body>
+  {% include 'nav_bar.html' %}
+  <div class="container-fluid">
+    <hr class="mb-4">
+    <hr class="mb-4">
+    
+    {% block content_block %}
+    {% endblock %}
+  </div>
+  {% block scriptBlock %}
+  {% endblock %}
+</body>
+</html>

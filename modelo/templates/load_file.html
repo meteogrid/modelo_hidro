@@ -1,0 +1,144 @@
+{% extends 'base_generic.html' %}
+
+{% block content_block %}
+<div class="container">
+    <div class="py-5 text-center">
+        <h2>Carga de Archivos</h2>
+        <p class="lead">Esta version permite la carga de archivos para el calculo de datos a graficar.</p>
+    </div>
+
+    <div class="container">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="datos">Datos</span>
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="file" aria-describedby="datos">
+                            <label class="custom-file-label" for="file">Archivo Etp</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm">
+                    <button class="btn btn-secondary btn-md" type="button" id="procesar">Procesar Archivo</button>
+                </div>
+                <div class="col-sm">
+                    <button class="btn btn-secondary btn-md" type="button" id="ejecutar">Ejecutar Calculo</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <hr class="mb-4">
+                </div>
+            </div>
+        </form>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Unidad</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">PAjustada</th>
+                    <th scope="col">dQ</th>
+                    <th scope="col">SSm</th>
+                    <th scope="col">SUZ2</th>
+                    <th scope="col">SIz</th>
+                    <th scope="col">Q0</th>
+                    <th scope="col">Q1</th>
+                    <th scope="col">Q2</th>
+                    <th scope="col">Q3</th>
+                    <th scope="col">Delta Suz prima</th>
+                    <th scope="col">Q4</th>
+                    <th scope="col">Q_gen</th>
+                    <th scope="col">Caudal</th>
+                    <th scope="col">Delta SIz</th>
+                </tr>
+            </thead>
+            <tbody id="tabla_calculo"></tbody>
+        </table>
+    </div>
+    {% endblock %}
+    {% block scriptBlock %}
+    <script>
+        $("#procesar").click(function (event) {
+            event.preventDefault();
+            var file = document.getElementById('file').files[0];
+
+            Papa.parse(file, {
+                skipEmptyLines: true,
+                header: true,
+                delimiter: "",	// auto-detect
+                quoteChar: '"',
+                escapeChar: '"',
+                complete: function (results, file) {
+                    importData(results);
+                    console.log('Parseado completado');
+                }
+            });
+        });
+
+        $("#ejecutar").click(function(event) {
+            $.ajax({
+                type: "GET",
+                url: '{% url "create_data" %}',
+                dataType: 'json',
+                success: function(data){
+                    generar_tabla(data);
+                },
+                error: function(data){
+                    console.log(data);
+                }
+            })
+        })
+
+        function importData(results) {
+            var csrftoken = $("[name=csrfmiddlewaretoken]").val();
+
+            $.ajax({
+                url: '{% url "load_data_file" %}',
+                type: 'POST',
+                cache: false,
+                data: JSON.stringify(results),
+                contentType: 'application/json',
+                processData: false,
+                headers: {
+                    "X-CSRFToken": csrftoken
+                },
+                success: function (data) {
+                    alert('Carga de datos completada');
+                    console.log("Post Completado");
+                },
+                error: function (data) {
+                    console.log("Error en el Post");
+                }
+            })
+        }
+
+        function generar_tabla(data){
+            console.log('Datos ',data.calculo);
+            var table_body = "";
+
+            for(var i = 0; i<data.calculo.length; i++){
+                table_body += "<tr>"+"<td>"+data.calculo[i]['Unidad']+"</td>";
+                table_body += "<td>"+data.calculo[i]['fecha']+"</td>";
+                table_body += "<td>"+data.calculo[i]['p_ajustada']+"</td>";
+                table_body += "<td>"+data.calculo[i]['dQ']+"</td>";
+                table_body += "<td>"+data.calculo[i]['SSm']+"</td>";
+                table_body += "<td>"+data.calculo[i]['SUZ2']+"</td>";
+                table_body += "<td>"+data.calculo[i]['SIz']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Q0']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Q1']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Q2']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Q3']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Delta_Suz_prima']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Q4']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Q_gen']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Caudal']+"</td>";
+                table_body += "<td>"+data.calculo[i]['Delta_SIz']+"</td>"+"</tr>";
+            }
+            $('#tabla_calculo').html(table_body);
+        }
+    </script>
+    {% endblock scriptBlock %}
