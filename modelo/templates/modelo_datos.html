@@ -74,7 +74,9 @@
 
     $(function () {
         $("#calculo_fecha").datepicker({
-            dateFormat:"yy-mm-dd"
+            dateFormat:"yy-mm-dd",
+            changeMonth: true,
+            changeYear: true
         });
     });
 
@@ -83,32 +85,42 @@
         var unidad = document.getElementById("unidades_select").value;
         var fecha = document.getElementById("calculo_fecha").value;
         var error = "";
+        var flagError = false;
         
         if(unidad == '0'){
             error += "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Unidad</b> para la consulta</div>";
+            flagError = true;
         }
         if(fecha == ''){
             error += "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Fecha</b> para la consulta</div>";
+            flagError = true;
         }
-
-        $("#result_body").html(error);
-        $("#result_label").html("ERROR");
-        $("#result_modal").modal('toggle');
-
-        console.log(unidad, " ", fecha, " ", error);
+        
+        if(flagError){
+            $("#result_body").html(error);
+            $("#result_label").html("ERROR");
+            $("#result_modal").modal('toggle');
+        }else{
+            get_datos(unidad, fecha);
+        }
     })       
 
-    $("#unidades_select").change(function () {
-        var unidad = $(this).val();
-
+    function get_datos(unidad, fecha){
         $.ajax({
             method: "GET",
             url: '{% url "get_calculo_data" %}',
             data: {
-                'unidad': unidad
+                'unidad': unidad,
+                'fecha': fecha
             },
             success: function (data) {
-                var ctx = document.getElementById("myChart").getContext('2d');
+                graficar_datos(data);    
+            }
+        })
+    }
+
+    function graficar_datos(data){
+        var ctx = document.getElementById("myChart").getContext('2d');
                 var myChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -170,8 +182,6 @@
                         }
                     }
                 });
-            }
-        })
-    })
+    }
 </script>
 {% endblock %}

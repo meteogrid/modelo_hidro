@@ -26,7 +26,7 @@ def get_calculo_data(request, *args, **kwargs):
     labels = []
     caudal_items = []
     p_ajustada_items = []
-    for calculo in CalculoModelo.objects.filter(Unidad=unidad).order_by('-fecha')[:15]:
+    for calculo in CalculoModelo.objects.filter(Unidad=unidad, fecha__gt = request.GET.get('fecha')).order_by('-fecha')[:15]:
         labels.append(calculo.fecha)
         caudal_items.append(calculo.Caudal)
         p_ajustada_items.append(calculo.p_ajustada)
