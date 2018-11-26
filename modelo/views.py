@@ -26,7 +26,7 @@ def get_calculo_data(request, *args, **kwargs):
     labels = []
     caudal_items = []
     p_ajustada_items = []
-    for calculo in CalculoModelo.objects.filter(Unidad=unidad, fecha__gt = request.GET.get('fecha')).order_by('-fecha')[:15]:
+    for calculo in CalculoModelo.objects.filter(Unidad=unidad, fecha__gt = request.GET.get('fecha')).order_by('fecha')[:15]:
         labels.append(calculo.fecha)
         caudal_items.append(calculo.Caudal)
         p_ajustada_items.append(calculo.p_ajustada)
@@ -44,10 +44,8 @@ def load_file_view(request):
 def load_data_file(request, *args, **kwargs):
     if(request.method == 'POST'):
         load_data = json.loads(request.body)
-        data = load_data['data']
-        
-        unidad = UnidadHidrologica.objects.get(Id=data[0]['Unidad'])
-        for registro in data:
+        unidad = UnidadHidrologica.objects.get(Id=load_data[0]['Unidad'])
+        for registro in load_data:
             etp = Etp(Unidad=unidad, Fecha=registro['Fecha'], Etp=registro['ETP'])
             etp.save()
             pcp = Pcp(Unidad=unidad, Fecha=registro['Fecha'], Pcp=registro['PCP'])

@@ -25,23 +25,23 @@
 <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
 
 <div class="modal fade" id="result_modal" tabindex="-1" role="dialog" aria-labelledby="result_label" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="result_label"></h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+                <h5 class="modal-title" id="result_label"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body" id="result_body">
-              
+
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
 {% endblock %}
 {% block scriptBlock %}
 <script>
@@ -74,7 +74,7 @@
 
     $(function () {
         $("#calculo_fecha").datepicker({
-            dateFormat:"yy-mm-dd",
+            dateFormat: "yy-mm-dd",
             changeMonth: true,
             changeYear: true
         });
@@ -86,26 +86,28 @@
         var fecha = document.getElementById("calculo_fecha").value;
         var error = "";
         var flagError = false;
-        
-        if(unidad == '0'){
-            error += "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Unidad</b> para la consulta</div>";
+
+        if (unidad == '0') {
+            error +=
+                "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Unidad</b> para la consulta</div>";
             flagError = true;
         }
-        if(fecha == ''){
-            error += "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Fecha</b> para la consulta</div>";
+        if (fecha == '') {
+            error +=
+                "<div class='alert alert-danger' role='alert'>Debe seleccionar una <b>Fecha</b> para la consulta</div>";
             flagError = true;
         }
-        
-        if(flagError){
+
+        if (flagError) {
             $("#result_body").html(error);
             $("#result_label").html("ERROR");
             $("#result_modal").modal('toggle');
-        }else{
+        } else {
             get_datos(unidad, fecha);
         }
-    })       
+    })
 
-    function get_datos(unidad, fecha){
+    function get_datos(unidad, fecha) {
         $.ajax({
             method: "GET",
             url: '{% url "get_calculo_data" %}',
@@ -114,74 +116,74 @@
                 'fecha': fecha
             },
             success: function (data) {
-                graficar_datos(data);    
+                graficar_datos(data);
             }
         })
     }
 
-    function graficar_datos(data){
+    function graficar_datos(data) {
         var ctx = document.getElementById("myChart").getContext('2d');
-                var myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                                label: 'Precipitacion',
-                                data: data.caudal_items,
-                                backgroundColor: [
-                                    'rgba(0, 255, 0, 0.2)',
-                                    'rgba(0, 254, 235, 0.2)',
-                                    'rgba(0, 255, 0, 0.2)',
-                                    'rgba(0, 175, 192, 0.2)',
-                                    'rgba(0, 153, 0, 0.2)',
-                                    'rgba(0, 255, 64, 0.2)'
-                                ],
-                                borderColor: [
-                                    'rgba(0,255,132,1)',
-                                    'rgba(0, 154, 235, 1)',
-                                    'rgba(0, 255, 86, 1)',
-                                    'rgba(0, 175, 192, 1)',
-                                    'rgba(0, 153, 255, 1)',
-                                    'rgba(0, 255, 64, 1)'
-                                ],
-                                borderWidth: 1,
-                                borderSkipped: 'botton'
-                            },
-                            {
-                                type: 'line',
-                                label: 'Caudal',
-                                data: data.p_ajustada_items,
-                                backgroundColor: [
-                                    'rgba(255, 0, 132, 0.2)',
-                                    'rgba(54, 0, 235, 0.2)',
-                                    'rgba(255, 0, 86, 0.2)',
-                                    'rgba(75, 0, 192, 0.2)',
-                                    'rgba(153, 0, 255, 0.2)',
-                                    'rgba(255, 0, 64, 0.2)'
-                                ],
-                                borderColor: [
-                                    'rgba(255,99,132,1)',
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                    'rgba(153, 102, 255, 1)',
-                                    'rgba(255, 159, 64, 1)'
-                                ],
-                                borderWidth: 1
-
-                            }
-                        ]
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                        label: 'Precipitacion',
+                        data: data.caudal_items,
+                        backgroundColor: [
+                            'rgba(0, 255, 0, 0.2)',
+                            'rgba(0, 254, 235, 0.2)',
+                            'rgba(0, 255, 0, 0.2)',
+                            'rgba(0, 175, 192, 0.2)',
+                            'rgba(0, 153, 0, 0.2)',
+                            'rgba(0, 255, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(0,255,132,1)',
+                            'rgba(0, 154, 235, 1)',
+                            'rgba(0, 255, 86, 1)',
+                            'rgba(0, 175, 192, 1)',
+                            'rgba(0, 153, 255, 1)',
+                            'rgba(0, 255, 64, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderSkipped: 'botton'
                     },
-                    options: {
-                        scales: {
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
-                        }
+                    {
+                        type: 'line',
+                        label: 'Caudal',
+                        data: data.p_ajustada_items,
+                        backgroundColor: [
+                            'rgba(255, 0, 132, 0.2)',
+                            'rgba(54, 0, 235, 0.2)',
+                            'rgba(255, 0, 86, 0.2)',
+                            'rgba(75, 0, 192, 0.2)',
+                            'rgba(153, 0, 255, 0.2)',
+                            'rgba(255, 0, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255,99,132,1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+
                     }
-                });
+                ]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
     }
 </script>
 {% endblock %}

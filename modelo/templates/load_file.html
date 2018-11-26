@@ -58,36 +58,104 @@
             </thead>
             <tbody id="tabla_calculo"></tbody>
         </table>
+        <div class="modal fade" id="result_modal" tabindex="-1" role="dialog" aria-labelledby="result_label"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="result_label"></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="result_body">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     {% endblock %}
     {% block scriptBlock %}
     <script>
+        var campos_requeridos = ['Unidad', 'Fecha', 'ETP', 'PCP'];
+
         $("#procesar").click(function (event) {
             event.preventDefault();
             var file = document.getElementById('file').files[0];
+            var missing_columns = [];
+            var fullData = [];
+            var line = 1;
+            var msj = "";
 
-            Papa.parse(file, {
-                skipEmptyLines: true,
-                header: true,
-                delimiter: "",	// auto-detect
-                quoteChar: '"',
-                escapeChar: '"',
-                complete: function (results, file) {
-                    importData(results);
-                    console.log('Parseado completado');
-                }
-            });
+            if (file == undefined) {
+                msj =
+                    "<div class='alert alert-danger' role='alert'>Archivo requerido</div>";
+                show_result(msj, "ERROR")
+            } else if (file.type != 'text/csv') {
+                msj =
+                    "<div class='alert alert-danger' role='alert'>Formato de archivo incorrecto, debe ser <b>.csv</b> </div>";
+                show_result(msj, "ERROR")
+            } else {
+                Papa.parse(file, {
+                    skipEmptyLines: true,
+                    header: true,
+                    delimiter: "", // auto-detect
+                    quoteChar: '"',
+                    escapeChar: '"',
+                    step: function (results, parser) {
+                        parser.pause();
+                        validate_row(results.data[0], missing_columns, line);
+
+                        if (missing_columns.length > 0) {
+                            for (var i = 0; i < missing_columns.length; i++) {
+                                msj +=
+                                    "<div class='alert alert-danger' role='alert'>Datos faltantes en el archivo: " +
+                                    missing_columns[i] + "</div>";
+                            }
+                            parser.abort();
+                        } else {
+                            fullData.push(results.data[0]);
+                            parser.resume();
+                        }
+                    },
+                    complete: function (results, file) {
+                        if (missing_columns.length > 0) {
+                            show_result(msj, "ERROR")
+                        } else {
+                            importData(fullData);
+                            msj =
+                                "<div class='alert alert-primary' role='alert'>Carga de archivo completada</div>";
+                            show_result(msj, "Completado")
+                        }
+                    },
+                    error: function (error, file, inputElement, reason) {
+                        msj =
+                            "<div class='alert alert-danger' role='alert'>Error durante la carga del archivo</div>";
+                        show_result(msj, "ERROR")
+                    }
+                });
+            }
         });
 
-        $("#ejecutar").click(function(event) {
+        function show_result(msj, status) {
+            $('#result_body').html(msj);
+            $("#result_label").html(status);
+            $("#result_modal").modal('toggle');
+        }
+
+        $("#ejecutar").click(function (event) {
             $.ajax({
                 type: "GET",
                 url: '{% url "create_data" %}',
                 dataType: 'json',
-                success: function(data){
+                success: function (data) {
                     generar_tabla(data);
                 },
-                error: function(data){
+                error: function (data) {
                     console.log(data);
                 }
             })
@@ -107,7 +175,6 @@
                     "X-CSRFToken": csrftoken
                 },
                 success: function (data) {
-                    alert('Carga de datos completada');
                     console.log("Post Completado");
                 },
                 error: function (data) {
@@ -116,29 +183,38 @@
             })
         }
 
-        function generar_tabla(data){
-            console.log('Datos ',data.calculo);
+        function generar_tabla(data) {
+            console.log('Datos ', data.calculo);
             var table_body = "";
 
-            for(var i = 0; i<data.calculo.length; i++){
-                table_body += "<tr>"+"<td>"+data.calculo[i]['Unidad']+"</td>";
-                table_body += "<td>"+data.calculo[i]['fecha']+"</td>";
-                table_body += "<td>"+data.calculo[i]['p_ajustada']+"</td>";
-                table_body += "<td>"+data.calculo[i]['dQ']+"</td>";
-                table_body += "<td>"+data.calculo[i]['SSm']+"</td>";
-                table_body += "<td>"+data.calculo[i]['SUZ2']+"</td>";
-                table_body += "<td>"+data.calculo[i]['SIz']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Q0']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Q1']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Q2']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Q3']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Delta_Suz_prima']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Q4']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Q_gen']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Caudal']+"</td>";
-                table_body += "<td>"+data.calculo[i]['Delta_SIz']+"</td>"+"</tr>";
+            for (var i = 0; i < data.calculo.length; i++) {
+                table_body += "<tr>" + "<td>" + data.calculo[i]['Unidad'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['fecha'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['p_ajustada'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['dQ'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['SSm'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['SUZ2'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['SIz'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Q0'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Q1'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Q2'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Q3'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Delta_Suz_prima'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Q4'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Q_gen'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Caudal'] + "</td>";
+                table_body += "<td>" + data.calculo[i]['Delta_SIz'] + "</td>" + "</tr>";
             }
             $('#tabla_calculo').html(table_body);
+        }
+
+        function validate_row(row, missing_columns, line) {
+            for (var i = 0; i < campos_requeridos.length; i++) {
+                if (row[campos_requeridos[i]] == undefined) {
+                    missing_columns.push("<b>Campo:</b> " + campos_requeridos[i] + ", <b>Fila:</b> " + line);
+                }
+            }
+            line = line + 1;
         }
     </script>
     {% endblock scriptBlock %}
