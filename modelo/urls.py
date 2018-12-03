@@ -1,5 +1,5 @@
-from django.conf.urls import url
-
+from django.conf.urls import url, include
+from django.urls import path
 from modelo import views
 
 urlpatterns = [
@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'^get_unidades/$', views.load_unidad_hidro, name='get_unidades'),
     url(r'^load/$', views.load_file_view, name='load_file'),
     url(r'^load_data/$', views.load_data_file, name='load_data_file'),
-    url(r'^create_data/$', views.create_data, name='create_data')
+    url(r'^create_data/$', views.create_data, name='create_data'),
+    path('calculoModelo/', views.calculoModelo),
 ]

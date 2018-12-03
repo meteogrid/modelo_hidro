@@ -22,6 +22,11 @@ class Pcp(models.Model):
     class Meta:
         verbose_name_plural = 'pcp_tb'
 
+class DatosGeneradosUnidad(models.Model):
+    Unidad = models.ForeignKey('UnidadHidrologica', on_delete=models.CASCADE)
+    Fecha = models.DateField()
+    Pcp = models.DecimalField(max_digits=6, decimal_places=2)
+    Etp = models.DecimalField(max_digits=6, decimal_places=2) 
   
 class UnidadHidrologica(models.Model):
     Id = models.CharField(max_length=5, primary_key=True)
