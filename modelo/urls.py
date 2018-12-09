@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^load_data/$', views.load_data_file, name='load_data_file'),
     url(r'^create_data/$', views.create_data, name='create_data'),
     path('calculoModelo/', views.calculoModelo),
+    path('calculoModelo/<unidad_id>', views.calculoModeloUnidad),
 ]

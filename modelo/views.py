@@ -18,23 +18,36 @@ def calculoModelo(request):
     """
         Realiza el calculo del modelo hidrologico con los datos de entrada
     """
-    if request.method == 'GET':
-        calculos = CalculoModelo.objects.all()
-        serializer = CalculoModeloSerializer(calculos, many=True)
-        return JsonResponse(serializer.data, safe=False)
-
-    elif request.method == 'POST':
-        serializer = DatosGeneradosUnidadSerializer(data=request.data, many=True)
+    if request.method == 'POST':
         
-        if serializer.is_valid():
-            calculoModelo = ejecutarCalculo(serializer.data)
-            serializerCalculo = CalculoModeloSerializer(data=calculoModelo, many=True)
-            if(serializerCalculo.is_valid()):
-                serializerCalculo.save()
-            serializer.save()
+        serializer = DatosGeneradosUnidadSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
 
-            return JsonResponse(serializerCalculo.data, status=status.HTTP_201_CREATED, safe=False)
-        return JsonResponse(request.data, safe=False, status=status.HTTP_400_BAD_REQUEST)    
+        try:
+            calculoModelo = ejecutarCalculo(serializer.data)
+        except Exception as e:
+            return JsonResponse({'detail':str(e)},status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        serializerCalculo = CalculoModeloSerializer(data=calculoModelo, many=True)
+        serializerCalculo.is_valid(raise_exception=True)
+
+        serializerCalculo.save()
+        serializer.save()
+
+        return JsonResponse(serializerCalculo.data, status=status.HTTP_201_CREATED, safe=False)
+
+@swagger_auto_schema(methods=['GET'],responses={200: CalculoModeloSerializer})
+@api_view(['GET'])
+def calculoModeloUnidad(request,unidad_id):
+    if request.method == 'GET':
+        unidad = UnidadHidrologica.objects.get(Id=unidad_id)
+        calculoModelo = CalculoModelo.objects.filter(Unidad=unidad).order_by('-fecha')[:15]
+        serializer = CalculoModeloSerializer(data=calculoModelo, many=True)
+        serializer.is_valid(raise_exception=False)
+
+        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED, safe=False)
+
+
 
 def ejecutarCalculo(data):
     calculo = []
