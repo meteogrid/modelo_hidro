@@ -25,4 +25,4 @@ Quick start
 
 5. Acceder http://127.0.0.1:8000/modelo/load/ para acceder a la pantalla de carga de datos.
 
-6. Acceder http://127.0.0.1:8000/apis-docs/ modelo de documentacion para las APIs.
+6. Acceder http://127.0.0.1:8000/api-doc/ modelo de documentacion para las APIs.
